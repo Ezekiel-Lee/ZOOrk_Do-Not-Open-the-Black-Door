@@ -40,6 +40,7 @@ private:
 
     void checkSanity();
     void checkEnding();          // called on every room entry
+    void resetGame();
     void showBadEnding();
     void showNormalEnding();
     void showTrueEnding();

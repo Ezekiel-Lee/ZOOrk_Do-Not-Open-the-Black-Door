@@ -87,7 +87,6 @@ void ZOOrkEngine::handleGoCommand(std::vector<std::string> arguments) {
             std::cout << "[The horrors here erode your mind. Sanity -" << drain
                       << " | Now: " << player->getSanity() << "/100]\n";
         }
-        // Check if we just entered the final chamber
         checkEnding();
     }
 }
@@ -213,7 +212,6 @@ void ZOOrkEngine::handleUseCommand(std::vector<std::string> arguments) {
     if (!item) { std::cout << "You are not carrying a \"" << target << "\".\n"; return; }
 
     if (target == "deep-one-idol") {
-        // True ending — only if standing in the Chamber
         if (player->getCurrentRoom() == chamberRoom) {
             showTrueEnding();
             return;
@@ -264,15 +262,11 @@ void ZOOrkEngine::handleQuitCommand(std::vector<std::string> arguments) {
 
 // ─── ending checks ───────────────────────────────────────────────────────────
 void ZOOrkEngine::checkEnding() {
-    
     if (player->getCurrentRoom() == chamberRoom) {
-        if (player->hasItem("deep-one-idol")) {
-            std::cout << "The altar pulses. You feel the idol in your pack resonating.\n";
-            std::cout << "(Use 'use deep-one-idol' to place it, or any other command to continue.)\n";
-            
-        } else {
-            showNormalEnding();  
+        if (!player->hasItem("deep-one-idol")) {
+            showNormalEnding();
         }
+        // idol 소지 시: "use deep-one-idol" 커맨드를 기다림
     }
 }
 
@@ -285,6 +279,17 @@ void ZOOrkEngine::checkSanity() {
 }
 
 // ─── endings ─────────────────────────────────────────────────────────────────
+
+// 공통 리셋 헬퍼
+void ZOOrkEngine::resetGame() {
+    player->resetSanity();
+    player->clearInventory();
+    knownPhrases.clear();
+    prayerBookUses = 3;
+    player->setCurrentRoom(startRoom);
+    player->getCurrentRoom()->enter();
+}
+
 void ZOOrkEngine::showBadEnding() {
     std::cout << "\n";
     std::cout << "  ╔══════════════════════════════════════════════════════════╗\n";
@@ -308,13 +313,8 @@ void ZOOrkEngine::showBadEnding() {
     std::getline(std::cin, input);
 
     if (input == "1") {
-        player->resetSanity();
-        player->clearInventory();
-        knownPhrases.clear();
-        prayerBookUses = 3;
-        player->setCurrentRoom(startRoom);
         std::cout << "\n  The nightmare releases you. You find yourself back at the station...\n\n";
-        player->getCurrentRoom()->enter();
+        resetGame();
     } else {
         gameOver = true;
     }
@@ -334,9 +334,20 @@ void ZOOrkEngine::showNormalEnding() {
     std::cout << "  ║  Perhaps some truths are better left undiscovered.       ║\n";
     std::cout << "  ║                                                          ║\n";
     std::cout << "  ║                  ~~~ YOU SURVIVED ~~~                    ║\n";
+    std::cout << "  ║                                                          ║\n";
+    std::cout << "  ║   [1] Try Again    [2] Quit                              ║\n";
     std::cout << "  ╚══════════════════════════════════════════════════════════╝\n";
-    std::cout << "\n";
-    gameOver = true;
+    std::cout << "\n  Your choice: ";
+
+    std::string input;
+    std::getline(std::cin, input);
+
+    if (input == "1") {
+        std::cout << "\n  The world resets. You find yourself back at the station...\n\n";
+        resetGame();
+    } else {
+        gameOver = true;
+    }
 }
 
 void ZOOrkEngine::showTrueEnding() {
@@ -356,9 +367,20 @@ void ZOOrkEngine::showTrueEnding() {
     std::cout << "  ║  Your name shall be remembered for all eternity.         ║\n";
     std::cout << "  ║                                                          ║\n";
     std::cout << "  ║              ~~~ THE TRUTH IS YOURS ~~~                  ║\n";
+    std::cout << "  ║                                                          ║\n";
+    std::cout << "  ║   [1] Play Again   [2] Quit                              ║\n";
     std::cout << "  ╚══════════════════════════════════════════════════════════╝\n";
-    std::cout << "\n";
-    gameOver = true;
+    std::cout << "\n  Your choice: ";
+
+    std::string input;
+    std::getline(std::cin, input);
+
+    if (input == "1") {
+        std::cout << "\n  Time folds. The station awaits once more...\n\n";
+        resetGame();
+    } else {
+        gameOver = true;
+    }
 }
 
 void ZOOrkEngine::printSanityWarning() {
